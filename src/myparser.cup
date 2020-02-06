@@ -1,0 +1,709 @@
+import java_cup.runtime.*;
+
+init with {:
+	System.out.println("Start...");
+	//table = new Hashtable<String,sym>();
+:};
+
+parser code {:
+//public static Hashtable<String,String> table;
+boolean DEBUGS = false;
+
+    /* Change the method report_error so it will display the line and
+       column of where the error occurred in the input as well as the
+       reason for the error which is passed into the method in the
+       String 'message'. */
+    public void report_error(String message, Object info) {
+
+        /* Create a StringBuilder called 'm' with the string 'Error' in it. */
+        StringBuilder m = new StringBuilder("Error");
+
+
+        System.err.println(m);
+    }
+
+    /* Change the method report_fatal_error so when it reports a fatal
+       error it will display the line and column number of where the
+       fatal error occurred in the input as well as the reason for the
+       fatal error which is passed into the method in the object
+       'message' and then exit.*/
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+:}
+
+
+/*terminal*/
+
+
+   terminal DIV  ;
+    terminal MULT ;
+    terminal IDENTIFIER ;
+    terminal INTEGER_LITERAL;
+    terminal DOT ;
+    terminal STRING ;
+    terminal CHARACTER_LITERAL  ;
+    terminal LPAREN ;
+    terminal RPAREN  ;
+    //terminal LBRACE ;
+  //  terminal RBRACE ;
+    terminal LBRACK ;
+    terminal RBRACK ;
+    terminal SEMICOLON  ;
+    terminal COMMA ;
+    terminal EQ ;
+    terminal GT ;
+    terminal LT ;
+    terminal NOT  ;
+    terminal COMP  ;
+   // terminal QUESTION  ;
+    terminal COLON ;
+    terminal AND ;
+    terminal OR  ;
+    terminal XOR  ;
+    terminal MOD ;
+    terminal DIVEQ ;
+    terminal MULTEQ  ;
+    terminal REAL_LITERAL ;
+    terminal LONG_LITERAL ;
+    terminal STRING_LITERAL ;
+    terminal MINUSMINUS  ;
+    terminal MINUSEQ ;
+   // terminal KEYWORD  ;
+    terminal EQEQ ;
+    terminal GTEQ ;
+    terminal LTEQ  ;
+    //terminal NULL_LITERAL;
+    terminal BOOLEAN_LITERAL;
+
+   // terminal MODEQ;
+    terminal PLUSPLUS;
+    terminal NOTEQ;
+    terminal ANDAND;
+    terminal OROR;
+    terminal PLUSEQ;
+
+
+    terminal IF ;
+    terminal END  ;
+    terminal INT  ;
+    terminal FOR  ;
+    terminal BOOL  ;
+    terminal ELSE ;
+    terminal LONG  ;
+    terminal CASE  ;
+    terminal CHAR ;
+    terminal BEGIN ;
+    terminal BREAK ;
+    terminal CONST ;
+    terminal FLOAT  ;
+    terminal EXTERN ;
+    terminal RECORD  ;
+    terminal RETURN  ;
+    terminal SIZEOF ;
+    terminal SWITCH ;
+    terminal DOUBLE ;
+    terminal DEFAULT ;
+    terminal FOREACH  ;
+    terminal CONTINUE ;
+    terminal FUNCTION ;
+    terminal OF ;
+    terminal REPEAT ;
+   // terminal EOF ;
+    terminal UNTIL ;
+    terminal IN ;
+    terminal VOID ;
+    terminal AUTO ;
+    terminal MINUS ;
+    terminal PLUS  ;
+   // terminal EXCLEM  ;
+    terminal UMINUS  ;
+    terminal POSMINUS  ;
+    terminal POSPLUS  ;
+
+
+/*nonterminal*/
+
+   nonterminal program ;
+   nonterminal var_dcl ;
+   nonterminal func_extern ;
+   nonterminal struct_dec ;
+   nonterminal func_dcl ;
+   nonterminal extern_dcl ;
+   nonterminal type ;
+   nonterminal arguments ;
+   nonterminal block ;
+   nonterminal var_dcl_cnt ;
+   nonterminal variable ;
+   nonterminal expr ;
+   nonterminal statement ;
+   nonterminal assignment ;
+   nonterminal method_call;
+   nonterminal cond_stmt ;
+   nonterminal loop_stmt ;
+   nonterminal parameters ;
+   nonterminal binary_op ;
+   nonterminal const_val ;
+   nonterminal arithmatic ;
+   nonterminal conditional ;
+   //nonterminal funcfind ;
+   nonterminal exp1 ;
+   nonterminal exp2 ;
+   nonterminal exp3 ;
+   nonterminal exp4 ;
+   nonterminal exp5 ;
+   nonterminal exp6 ;
+   nonterminal exp7 ;
+   nonterminal exp19 ;
+   nonterminal exp11 ;
+   nonterminal globalIndicate ;
+
+
+/*precedence*/
+
+precedence right EQ;
+precedence left OR;
+precedence left XOR;
+precedence left AND;
+precedence left EQEQ, NOTEQ;
+precedence left ANDAND, OROR;
+precedence left LTEQ,LT, GTEQ,GT;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV, MOD;
+//precedence right EXCLEM;
+precedence left  LBRACK, RBRACK, LPAREN, RPAREN;
+precedence right PLUSPLUS, MINUSMINUS, NOT;
+precedence left POSPLUS, POSMINUS;
+precedence right COMP;
+precedence left DOT ;
+precedence left UMINUS;
+
+/*one*/
+program 	::=		var_dcl:e       program:e1	 	{: if( DEBUGS ){ System.out.println("program found(var dcl)"); }  RESULT = ((Program)e1).add((Node)e); :}
+			|		func_extern:e	program:e1		{: if( DEBUGS ){ System.out.println("program found(func extern)"); } RESULT = ((Program)e1).add((Node)e); :}
+			|		struct_dec:e	program:e1		{: if( DEBUGS ){ System.out.println("program found(struct dec)"); } RESULT = ((Program)e1).add((Node)e); :}
+			|										{: if( DEBUGS ){ System.out.println("program found(epsilon)"); } RESULT = new Program(); :}
+			;
+
+/*two*/
+func_extern 	::=		func_dcl:e 	    {: if( DEBUGS ){ System.out.println("func extern found(func dcl)"); } RESULT=e; :}
+				|		extern_dcl:e 	{: if( DEBUGS ){ System.out.println("func extern found(extern dcl)"); }  RESULT=e;  :}
+				;
+
+/*three*/
+func_dcl		::=		FUNCTION globalIndicate type:e1 IDENTIFIER:e2 LPAREN arguments:e3 RPAREN SEMICOLON  globalIndicate   	    {: if( DEBUGS ){ System.out.println("func dcl found"); } RESULT = new FuncDcleration(HelperFunctions.reverse((ArrayList <Argument >)e3), (String)e1, (String)e2, null) ; :}
+				|		FUNCTION globalIndicate type:e1 IDENTIFIER:e2 LPAREN arguments:e3 RPAREN block:e4  globalIndicate      {: if( DEBUGS ){ System.out.println("func dcl found"); } RESULT = new FuncDcleration(HelperFunctions.reverse((ArrayList <Argument >)e3), (String)e1, (String)e2, (Block)e4) ;:}
+				|		FUNCTION globalIndicate type:e1 IDENTIFIER:e2 LPAREN RPAREN SEMICOLON 	globalIndicate	                  {: if( DEBUGS ){ System.out.println("func dcl found"); } RESULT = new FuncDcleration( new ArrayList <Argument>(), (String)e1, (String)e2, null) ;:}
+				|		FUNCTION globalIndicate type:e1 IDENTIFIER:e2 LPAREN RPAREN block:e4     globalIndicate 	            {: if( DEBUGS ){ System.out.println("func dcl found"); } RESULT = new FuncDcleration( new ArrayList <Argument>(), (String)e1, (String)e2, (Block)e4) ;:}
+				;
+
+
+globalIndicate	::=		{:if( DEBUGS ){ System.out.println("func dcl found"); } DefinedValues.changeScope();:}
+				;
+
+/*four*/
+
+extern_dcl		::=		EXTERN type:e1  IDENTIFIER:e2   SEMICOLON  {: if( DEBUGS ){ System.out.println("extern dcl found"); } :}
+                ;
+
+/*five*/
+arguments 		::=		type:e1 IDENTIFIER:e2 exp1:e3 COMMA arguments:e4	    {: if( DEBUGS ){ System.out.println("arguments found(comma)"); } ArrayList <Argument> a = (ArrayList <Argument>)e4   ; a.add(new Argument((String)e1, (String)e2,(Integer)e3)); RESULT = a ;:}
+				|		type:e1 IDENTIFIER:e2 exp1:e3		                    {: if( DEBUGS ){ System.out.println("arguments found(no comma)"); } ArrayList <Argument> a = new ArrayList <Argument>() ; a.add(new Argument((String)e1, (String)e2,(Integer)e3)); RESULT = a ; :}
+				;
+
+exp1			::=		LBRACK RBRACK exp1:e	    {: if( DEBUGS ){ System.out.println("exp1 found(bracket)"); } RESULT = (Integer)e + 1;:}
+				|	                                {: if( DEBUGS ){ System.out.println("exp1 found(epsilon)"); }  RESULT = new Integer(0); :}
+				;
+
+/*six*/
+type	::=	INT:e 		{: if( DEBUGS ){ System.out.println("type int found"); }  RESULT = e ;  :}
+		|	BOOL:e 		{: if( DEBUGS ){ System.out.println("type bool found"); }  RESULT = e ;   :}
+		|	FLOAT:e		{: if( DEBUGS ){ System.out.println("type float found"); }  RESULT = e ;   :}
+		|	LONG:e 		{: if( DEBUGS ){ System.out.println("type long found"); }  RESULT = e ;   :}
+		|	CHAR:e 		{: if( DEBUGS ){ System.out.println("type char found"); }   RESULT = e ;  :}
+		|	DOUBLE:e	{: if( DEBUGS ){ System.out.println("type double found"); }  RESULT = e ;   :}
+		|	IDENTIFIER:e{: if( DEBUGS ){ System.out.println("type identifier found"); }  RESULT = e ;  :}
+		|	STRING:e	{: if( DEBUGS ){ System.out.println("type string found"); }  RESULT = e ;   :}
+		|	VOID:e		{: if( DEBUGS ){ System.out.println("type void found"); }  RESULT = e ;  :}
+		|	AUTO:e		{: if( DEBUGS ){ System.out.println("type auto found"); }   RESULT = e ; :}
+		;
+
+/*seven*/
+struct_dec	::=	RECORD IDENTIFIER:e1 BEGIN var_dcl:e2 exp2:e3 END RECORD SEMICOLON  {: if( DEBUGS ){ System.out.println("struct dec found"); }ArrayList <Var_decleration> a = (ArrayList <Var_decleration>) e3 ;a.add((Var_decleration)e2);a = HelperFunctions.reverse(a) ;RESULT = new StructDecleration(a,(String)e1); :}
+			;
+exp2		::=	var_dcl:e1 exp2:e2		    {: if( DEBUGS ){ System.out.println("exp2 found(var dcl)"); }  ArrayList <Var_decleration> a = (ArrayList <Var_decleration>) e2 ; a.add((Var_decleration)e1); RESULT = a ;:}
+			|				                {: if( DEBUGS ){ System.out.println("exp2 found(epsilon)"); }   ArrayList <Var_decleration> a = new ArrayList<Var_decleration>(); RESULT=a;:}
+			;
+
+
+/*eight*/
+var_dcl 	::=	CONST type:e1 var_dcl_cnt:e2 exp3:e3 SEMICOLON	{: if( DEBUGS ){ System.out.println("var_dcl found(const)"); } ArrayList <Var_Decleration_Cnt> a = (ArrayList <Var_Decleration_Cnt>) e3; a.add((Var_Decleration_Cnt)e2); HelperFunctions.reverse(a); RESULT = new Var_decleration((String)e1,true ,a); :}
+			|	type:e4 var_dcl_cnt:e5 exp3:e6 SEMICOLON		{: if( DEBUGS ){ System.out.println("var_dcl found(no const)"); } ArrayList <Var_Decleration_Cnt> a = (ArrayList <Var_Decleration_Cnt>) e6; a.add((Var_Decleration_Cnt)e5); HelperFunctions.reverse(a); RESULT = new Var_decleration((String)e4,false ,a); :}
+			;
+
+exp3		::=    COMMA var_dcl_cnt:e7 exp3:e8  	        {: if( DEBUGS ){ System.out.println("exp3 found"); } ArrayList <Var_Decleration_Cnt> a = (ArrayList <Var_Decleration_Cnt>) e8; a.add((Var_Decleration_Cnt)e7); RESULT = a ;:}
+            |                                               {: if( DEBUGS ){ System.out.println("exp3 found(epsilon)"); } ArrayList <Var_Decleration_Cnt> a = new ArrayList<Var_Decleration_Cnt>();:}
+            ;
+
+/*nine*/
+
+var_dcl_cnt		::=		IDENTIFIER:v EQ expr:e	    {: if( DEBUGS ){ System.out.println("var dcl cnt found"); }RESULT = new Var_Decleration_Cnt((String)v, (Exp)e ,null); ; :}
+                |		IDENTIFIER:e1 exp6:e2		{: if( DEBUGS ){ System.out.println("var dcl cnt found"); }RESULT = new Var_Decleration_Cnt((String)e1,null, HelperFunctions.reverse((ArrayList <Exp>)e2)); :}
+             //   |       IDENTIFIER:e3               {: if( DEBUGS ){ System.out.println("var dcl cnt found"); }RESULT = new Var_Decleration_Cnt((String)e3, null); :}
+                ;
+exp6     		::=		LBRACK expr:e7 RBRACK exp6:e8	{: if( DEBUGS ){ System.out.println("exp6 found(brack)"); } ArrayList <Exp> a=(ArrayList <Exp>)e8;a.add((Exp)e7); RESULT = a; :}
+				|									    {: if( DEBUGS ){ System.out.println("exp6 found(epsilon)"); } RESULT = new ArrayList <Exp>() ;:}
+				;
+
+/*ten*/
+block		::=		BEGIN exp4:e END			{: if( DEBUGS ){ System.out.println("block found"); } RESULT = new Block(HelperFunctions.reverse((ArrayList <TempNode>)e)) ; :}
+			;
+exp4		::=		var_dcl:e1 exp4:e2			{: if( DEBUGS ){ System.out.println("exp4 found var"); }   ArrayList <TempNode> a = (ArrayList <TempNode>) e2 ; a.add((TempNode)e1); RESULT = a;   :}
+			|		statement:e1 exp4:e2		{: if( DEBUGS ){ System.out.println("exp4 found state"); } ArrayList <TempNode> a = (ArrayList <TempNode>) e2 ; a.add((TempNode)e1); RESULT = a; :}
+			|  									{: if( DEBUGS ){ System.out.println("exp4 found empty"); }  RESULT = new ArrayList <TempNode>(); :}
+			;
+
+/*eleven*/
+statement		::=     expr:e SEMICOLON		     	{: if( DEBUGS ){ System.out.println("statement found"); } RESULT = new ExpStatment((Exp)e); :}
+				|		cond_stmt:e			{: if( DEBUGS ){ System.out.println("statement found(cond)"); } RESULT = e ;:}
+				|		loop_stmt:e			{: if( DEBUGS ){ System.out.println("statement found(loop)"); }  RESULT = e ;:}
+				|		RETURN expr:e SEMICOLON	{: if( DEBUGS ){ System.out.println("statement ret found(return expr)"); }RESULT = new Return((Exp)e) ; :}
+				|		RETURN SEMICOLON			{: if( DEBUGS ){ System.out.println("statement ret found(return)"); } RESULT = new Return() ; :}
+				|		BREAK SEMICOLON			{: if( DEBUGS ){ System.out.println("statement found(break)"); } RESULT = new Break()  ;:}
+				|		CONTINUE SEMICOLON		{: if( DEBUGS ){ System.out.println("statement found(continue)"); }RESULT = new Continue(); :}
+				;
+
+/* twelve */
+assignment		::=		variable:v EQ expr:e		    {: if( DEBUGS ){ System.out.println("assignment found(eq)"); } RESULT = new Assignment((Exp)e,(Variables)v);  :}
+                |       variable:v PLUSEQ expr:e        {: if( DEBUGS ){ System.out.println("assignment found(pluseq)"); } RESULT = new PlusAssignment((Variables)v,(Exp)e);  :}
+                |       variable:v MINUSEQ expr:e       {: if( DEBUGS ){ System.out.println("assignment found(minuseq)"); } RESULT = new MinusAssignment((Variables)v,(Exp)e); :}
+                |       variable:v DIVEQ expr:e         {: if( DEBUGS ){ System.out.println("assignment found(diveq)"); } RESULT = new DivideAssignment((Variables)v,(Exp)e);  :}
+                |       variable:v MULTEQ expr:e        {: if( DEBUGS ){ System.out.println("assignment found(multeq)"); } RESULT = new MultAssignment((Variables)v,(Exp)e);  :}
+				;
+
+/*thirtheen*/
+method_call		::=		IDENTIFIER:e LPAREN parameters:e1 RPAREN		{: if( DEBUGS ){ System.out.println("method found(parameter)"); }  RESULT = new MethodCall((String)e, HelperFunctions.reverse((ArrayList<Exp>)e1));  :}
+				|		IDENTIFIER:e LPAREN  RPAREN		                {: if( DEBUGS ){ System.out.println("method found(no parameter)");  }  RESULT = new MethodCall((String)e,new ArrayList<Exp>()); :}
+				;
+
+/* fourteen */
+parameters		::=		expr:e	                    {: if( DEBUGS ){ System.out.println("parameters found(no comma)"); } ArrayList <Exp> a = new ArrayList<Exp>();	 a.add((Exp)e); RESULT = a;  :}
+				|		expr:e COMMA parameters:e1	{: if( DEBUGS ){ System.out.println("parameters found(comma parameter)"); }  ((ArrayList <Exp>)e1).add((Exp)e); RESULT = e1;  :}
+				;
+
+/*fifteen*/
+cond_stmt		::=		IF LPAREN expr:e1 RPAREN block:e2 ELSE block:e3	{: if( DEBUGS ){ System.out.println("cond_stmt found(else)"); } RESULT = new If((Exp)e1,(Block)e2,(Block)e3) ; :}
+				|		IF LPAREN expr:e1 RPAREN block:e2 				{: if( DEBUGS ){ System.out.println("cond_stmt found(if)"); } RESULT = new If((Exp)e1,(Block)e2,null) ; :}
+				|		SWITCH LPAREN expr:e1 RPAREN OF COLON BEGIN exp5:e2  DEFAULT COLON block:e3 END	{: if( DEBUGS ){ System.out.println("cond_stmt found(switch)"); } RESULT = new SwitchPart((Exp)e1, HelperFunctions.reverse((ArrayList <CasePart>)e2), (Block) e3) ; :}
+				;
+exp5			::=		CASE INTEGER_LITERAL:e1 COLON block:e2 exp5:e3		{: if( DEBUGS ){ System.out.println("exp5 found(case)"); } ArrayList <CasePart> a = (ArrayList <CasePart>)e3; a.add(new CasePart((Block)e2 ,new IntConstantExp(HelperFunctions.parseInt((String)e1)))); RESULT = a ;  :}
+				|														    {: if( DEBUGS ){ System.out.println("exp5 found(epsilon)"); } RESULT = new ArrayList <CasePart>() ;:}
+				;
+
+/*sixteen*/
+
+loop_stmt 		::=		FOR LPAREN assignment:e1 SEMICOLON expr:e2  SEMICOLON assignment:e3 RPAREN block:e4		{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,(Assignment)e1,(Exp)e2,(Exp)e3); :}
+				|		FOR LPAREN assignment:e1 SEMICOLON expr:e2 SEMICOLON expr:e3 RPAREN block:e4			{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,(Assignment)e1,(Exp)e2,(Exp)e3); :}
+				|		FOR LPAREN assignment:e1 SEMICOLON expr:e2 SEMICOLON RPAREN block:e4					{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,(Assignment)e1,(Exp)e2, null);:}
+				|		FOR LPAREN SEMICOLON expr:e2 SEMICOLON assignment:e3 RPAREN block:e4					{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,null,(Exp)e2,(Exp)e3);:}
+				|		FOR LPAREN SEMICOLON expr:e2 SEMICOLON expr:e3 RPAREN block:e4							{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,null,(Exp)e2,(Exp)e3); :}
+				|		FOR LPAREN SEMICOLON expr:e2 SEMICOLON RPAREN block:e4									{: if( DEBUGS ){ System.out.println("loop_stmt found"); } RESULT = new ForLoop((Block)e4,null,(Exp)e2,null);   :}
+				|		REPEAT block:e1 UNTIL LPAREN expr:e2 RPAREN SEMICOLON								    {: if( DEBUGS ){ System.out.println("loop_stmt found(repeat)"); } RESULT = new RepeatLoop((Block)e1,(Exp)e2); :}
+				|		FOREACH LPAREN IDENTIFIER:e1 IN IDENTIFIER:e2 RPAREN block:e3							{: if( DEBUGS ){ System.out.println("loop_stmt found(foreach)"); } RESULT = new ForEachLoop((Block)e3, (String)e1, (String)e2);  :}
+				;
+
+
+/*seventheen*/
+expr		::=		expr:e1  binary_op:e2  expr:e3	  {: if( DEBUGS ){ System.out.println("expr found(binary op)"); } RESULT = ((Binaryop)e2).setBinaryExp((Exp)e1,(Exp)e3);  :}
+			|		LPAREN expr:e  RPAREN	          {: if( DEBUGS ){ System.out.println("expr found(expr)"); }  Parantheses a = new Parantheses(); a.setUnryExp((Exp)e); RESULT = a ;:}
+			|		method_call:e	                  {: if( DEBUGS ){ System.out.println("expr found(method call)"); }  RESULT = e; :}
+			|		variable:e		                  {: if( DEBUGS ){ System.out.println("expr found(vvariable)"); }  RESULT = e ; :}
+			|		const_val:e		                  {: if( DEBUGS ){ System.out.println("expr found(const val)"); } RESULT = e;:}
+			|		MINUS expr:e                      {: if( DEBUGS ){ System.out.println("expr found(minus)"); } UnryExp a = new AST.exp.UnryVariableExp.Minus();a.setUnryExp((Exp)e) ;RESULT = a; :}	%prec  UMINUS
+			|		assignment:e 	                  {:if( DEBUGS ){ System.out.println("expr found"); }RESULT = e;:}
+			|		COMP expr:e                    	  {: if( DEBUGS ){ System.out.println("expr found(comp)"); } UnryExp a = new AST.exp.UnryVariableExp.Not();a.setUnryExp((Exp)e) ;RESULT = a; :}
+			|		MINUSMINUS variable:e	          {: if( DEBUGS ){ System.out.println("variable found(minus minus)"); } MinusMinuspre a=new MinusMinuspre(); a.setUnryExp((Exp)e); RESULT=a;:}
+			|		PLUSPLUS variable:e          	  {: if( DEBUGS ){ System.out.println("variable found(plus plus)"); } PlusPluspre a=new PlusPluspre(); a.setUnryExp((Exp)e); RESULT=a;:}
+		    |		 variable:e	MINUSMINUS            {: if( DEBUGS ){ System.out.println("variable found(minus minus)"); } MinusMinuspos a=new MinusMinuspos(); a.setUnryExp((Exp)e); RESULT=a;:}
+			|		 variable:e PLUSPLUS         	  {: if( DEBUGS ){ System.out.println("variable found(plus plus)"); }PlusPluspos a=new PlusPluspos(); a.setUnryExp((Exp)e); RESULT=a; :}
+		    |		SIZEOF LPAREN type:e RPAREN		  {: if( DEBUGS ){ System.out.println("statement found(sizeof)"); } RESULT = new Sizeof((String)e);:}
+			;
+
+/*eighteen*/
+variable		::=		IDENTIFIER:e1 exp6:e2 	{: if( DEBUGS ){ System.out.println("variable found(identifier)"); }  if(((ArrayList <Exp>)e2).size()==0){ RESULT = new SimpleVariable((String)e1);System.out.println("GG");}else{RESULT = new ArrayVariable((String)e1,HelperFunctions.reverse((ArrayList <Exp>)e2));}:}
+			    |       variable:e2 DOT IDENTIFIER:e3 {:if( DEBUGS ){ System.out.println("variable found(dot id)"); } RESULT = new VariableDot((Variables)e2, (String)e3);  :}
+
+				;
+
+
+/*nineteen*/
+binary_op		::=		arithmatic:e	{: if( DEBUGS ){ System.out.println("binary op found(arithmatic)");} RESULT = (Binaryop)e; :}
+				|		conditional:e	{: if( DEBUGS ){ System.out.println("binary op found(condition)");} RESULT = (Binaryop)e;:}
+				;
+
+/*twenty*/
+arithmatic		::=		PLUS	{: if( DEBUGS ){ System.out.println("arithmatic found plus"); } RESULT =new AST.exp.Binary_op.arithmatic.Add();:}
+				|		MINUS	{: if( DEBUGS ){ System.out.println("arithmatic found minus"); } RESULT =new AST.exp.Binary_op.arithmatic.Minus();:}
+				|		MULT	{: if( DEBUGS ){ System.out.println("arithmatic found mult"); } RESULT =new AST.exp.Binary_op.arithmatic.Mult(); :}
+				|		DIV  	{: if( DEBUGS ){ System.out.println("arithmatic found div"); } RESULT =new AST.exp.Binary_op.arithmatic.Divide(); :}
+				|		MOD		{: if( DEBUGS ){ System.out.println("arithmatic found mod"); } RESULT =new AST.exp.Binary_op.arithmatic.Mod(); :}
+				|		AND		{: if( DEBUGS ){ System.out.println("arithmatic found and"); } RESULT =new AST.exp.Binary_op.arithmatic.And(); :}
+				|		OR		{: if( DEBUGS ){ System.out.println("arithmatic found or"); } RESULT =new AST.exp.Binary_op.arithmatic.Or(); :}
+				|		XOR 	{: if( DEBUGS ){ System.out.println("arithmatic found xor"); } RESULT =new AST.exp.Binary_op.arithmatic.Xor(); :}
+				;
+/*twenty_one*/
+conditional		::=		EQEQ	{: if( DEBUGS ){ System.out.println("conditional found eq eq"); } RESULT =new EqEq(); :}
+				|		NOTEQ	{: if( DEBUGS ){ System.out.println("conditional found noteq"); } RESULT =new NotEq();:}
+				|		GTEQ	{: if( DEBUGS ){ System.out.println("conditional found gteq"); } RESULT =new GreaterEq();:}
+				|		LTEQ	{: if( DEBUGS ){ System.out.println("conditional found lteq"); } RESULT =new SmallerEq();:}
+				|		LT		{: if( DEBUGS ){ System.out.println("conditional found lt"); } RESULT =new Smaller();:}
+				|		GT		{: if( DEBUGS ){ System.out.println("conditional found gt"); }  RESULT =new SmallerEq();:}
+				|		ANDAND	{: if( DEBUGS ){ System.out.println("conditional found andand"); } RESULT =new and();:}
+				|		OROR	{: if( DEBUGS ){ System.out.println("conditional found oror"); } RESULT =new or();:}
+				|		NOT		{: if( DEBUGS ){ System.out.println("conditional found not"); } RESULT =new Not();:}
+				;
+
+
+/* twenty_two */
+
+const_val		::=		INTEGER_LITERAL:e		{: if( DEBUGS ){ System.out.println("const val found by INT_CONST"); } RESULT=new IntConstantExp(Integer.parseInt((String)e)); :}
+				|		REAL_LITERAL:e		{: if( DEBUGS ){ System.out.println("const val found by REAL_CONST"); }  RESULT=new RealConstantExp(Double.parseDouble((String)e));:}
+				|		CHARACTER_LITERAL:e		{: if( DEBUGS ){ System.out.println("const val found by CHAR_CONST"); } RESULT=new CharConstantExp(((String)e).charAt(0)); :}
+				|		BOOLEAN_LITERAL:e		{: if( DEBUGS ){ System.out.println("const val found by BOOL_CONST"); } RESULT=new BooleanConstantExp(((String)e).equals("true") ? true : false); :}
+				|		STRING_LITERAL:e	{: if( DEBUGS ){ System.out.println("const val found by STRING_CONST"); }  RESULT=new StringConstantExp((String)e);:}
+				|		LONG_LITERAL:e		{: if( DEBUGS ){ System.out.println("const val found by LONG_CONST"); } RESULT=new LongConstantExp(new Long(((String)e).substring(0,((String)e).length()-1))); :}
+				;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

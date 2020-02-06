@@ -1,0 +1,5 @@
+// class version 52.0 (52)
+// access flags 0x21
+public class str {
+
+}

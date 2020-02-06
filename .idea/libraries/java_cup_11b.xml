@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="java-cup-11b">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/out/production/compiler_part2/java-cup-11b.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

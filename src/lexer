@@ -1,0 +1,222 @@
+import java_cup.runtime.Symbol;
+%%
+%unicode
+%line
+%column
+%public
+%cup
+%char
+%{
+
+public Symbol symbol( int tokenType ) {
+    System.err.println( "Obtain token " + tokenType + " \"" + yytext() + "\"" );
+    return new Symbol( tokenType, yyline , yycolumn );
+}
+public Symbol symbol( int tokenType , Object val ) {
+    System.err.println( "Obtain token " + tokenType + " \"" + val + "\"" );
+    return new Symbol( tokenType, yyline , yycolumn,val );
+}
+StringBuilder string=new StringBuilder();
+
+%}
+
+/* special character and space classes */
+
+LineTerminator = \r|\n|\r\n
+InputCharacter = [^\r\n]
+WhiteCharacter = [ \t\f]
+WhiteSpace = {LineTerminator} | {WhiteCharacter}
+
+/* comments */
+
+Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
+TraditionalComment = "/#" [^#] ~"#/" | "/#" "#"+ "/"
+EndOfLineComment = "##" {InputCharacter}* {LineTerminator}?
+DocumentationComment = "/#" "*"+ [^/#] ~"#/"
+
+/* identifiers */
+
+Identifier = [:jletter:][:jletterdigit:]*
+
+/* integer literals */
+
+DecIntegerLiteral = 0 | [1-9][0-9]*
+DecLongLiteral    = {DecIntegerLiteral} [lL]
+
+HexIntegerLiteral = 0 [xX] 0* {HexDigit} {1,8}
+HexLongLiteral    = 0 [xX] 0* {HexDigit} {1,16} [lL]
+HexDigit          = [0-9a-fA-F]
+
+OctIntegerLiteral = 0+ [1-3]? {OctDigit} {1,15}
+OctLongLiteral    = 0+ 1? {OctDigit} {1,21} [lL]
+OctDigit          = [0-7]
+
+/* floating point literals */
+
+FloatLiteral  = ({FL1}|{FL2}|{FL3}) {Exponent}? [fF]
+DoubleLiteral = ({FL1}|{FL2}|{FL3}) {Exponent}?
+
+FL1    = [0-9]+ \. [0-9]*
+FL2    = \. [0-9]+
+FL3    = [0-9]+
+Exponent = [eE] [+-]? [0-9]+
+
+/* string and character literals */
+
+StringCharacter = [^\r\n\"\\]
+SingleCharacter = [^\r\n\'\\]
+
+
+%state STRING, CHARLITERAL
+
+%%
+
+<YYINITIAL> {
+
+  /* keywords */
+
+  "begin"                        { return symbol(sym.BEGIN,yytext()); }
+  "bool"                         { return symbol(sym.BOOL,yytext()); }
+  "break"                        { return symbol(sym.BREAK,yytext()); }
+  "case"                         { return symbol(sym.CASE,yytext()); }
+  "char"                         { return symbol(sym.CHAR,yytext()); }
+  "const"                        { return symbol(sym.CONST,yytext()); }
+  "continue"                     { return symbol(sym.CONTINUE,yytext()); }
+  "default"                      { return symbol(sym.DEFAULT,yytext()); }
+  "double"                       { return symbol(sym.DOUBLE,yytext()); }
+  "else"                         { return symbol(sym.ELSE,yytext()); }
+  "end"                         { return symbol(sym.END,yytext()); }
+  "extern"                       { return symbol(sym.EXTERN,yytext()); }
+  "function"                      { return symbol(sym.FUNCTION,yytext()); }
+  "float"                        { return symbol(sym.FLOAT,yytext()); }
+  "for"                          { return symbol(sym.FOR,yytext()); }
+  "of"                          { return symbol(sym.OF,yytext()); }
+  "repeat"                          { return symbol(sym.REPEAT,yytext()); }
+  "foreach"                          { return symbol(sym.FOREACH,yytext()); }
+  "false"                      { return symbol(sym.BOOLEAN_LITERAL,yytext()); }
+  "int"                          { return symbol(sym.INT,yytext()); }
+  "long"                         { return symbol(sym.LONG,yytext()); }
+  "if"                           { return symbol(sym.IF,yytext()); }
+  "sizeof"                       { return symbol(sym.SIZEOF,yytext()); }
+  "string"                       { return symbol(sym.STRING,yytext()); }
+  "void"                       { return symbol(sym.VOID,yytext()); }
+  "auto"                       { return symbol(sym.AUTO,yytext()); }
+  "IN"                       { return symbol(sym.IN,yytext()); }
+  "until"                       { return symbol(sym.UNTIL,yytext()); }
+  "switch"                       { return symbol(sym.SWITCH,yytext()); }
+  "record"                     { return symbol(sym.RECORD,yytext()); }
+  "return"                       { return symbol(sym.RETURN,yytext()); }
+  "true"                         { return symbol(sym.BOOLEAN_LITERAL,yytext()); }
+  //"null"                         {  return symbol(sym.NULL_LITERAL,yytext()); }
+
+
+  /* separators */
+
+  "("                            {  return symbol(sym.LPAREN,yytext()); }
+  ")"                            {  return symbol(sym.RPAREN,yytext()); }
+ // "{"                            {  return symbol(sym.LBRACE,yytext()); }
+  //"}"                            {  return symbol(sym.RBRACE,yytext()); }
+  "["                            {  return symbol(sym.LBRACK,yytext()); }
+  "]"                            {  return symbol(sym.RBRACK,yytext()); }
+  ";"                            {  return symbol(sym.SEMICOLON,yytext()); }
+  ","                            {  return symbol(sym.COMMA,yytext()); }
+  "."                            {  return symbol(sym.DOT,yytext()); }
+
+  /* operators */
+
+  "="                            {  return symbol(sym.EQ,yytext()); }
+  ">"                            {  return symbol(sym.GT,yytext()); }
+  "<"                            {  return symbol(sym.LT,yytext()); }
+ // "!"                            {  return symbol(sym.EXCLEM,yytext()); }
+  "~"                            {  return symbol(sym.COMP,yytext()); }
+//  "?"                            {  return symbol(sym.QUESTION,yytext()); }
+  ":"                            {  return symbol(sym.COLON,yytext()); }
+  "=="                           {  return symbol(sym.EQEQ,yytext()); }
+  "<="                           {  return symbol(sym.LTEQ,yytext()); }
+  ">="                           {  return symbol(sym.GTEQ,yytext()); }
+  "!="                           {  return symbol(sym.NOTEQ,yytext()); }
+  "and"                           {  return symbol(sym.ANDAND,yytext()); }
+  "or"                           {  return symbol(sym.OROR,yytext()); }
+  "not"                           {  return symbol(sym.NOT,yytext()); }
+  "++"                           {  return symbol(sym.PLUSPLUS,yytext()); }
+  "--"                           {  return symbol(sym.MINUSMINUS,yytext()); }
+  "+"                            {  return symbol(sym.PLUS,yytext()); }
+  "-"                            {  return symbol(sym.MINUS,yytext()); }
+  "*"                            {  return symbol(sym.MULT,yytext()); }
+  "/"                            {  return symbol(sym.DIV,yytext()); }
+  "&"                            {  return symbol(sym.AND,yytext()); }
+  "|"                            {  return symbol(sym.OR,yytext()); }
+  "^"                            {  return symbol(sym.XOR,yytext()); }
+  "%"                            {  return symbol(sym.MOD,yytext()); }
+  "+="                           {  return symbol(sym.PLUSEQ,yytext()); }
+  "-="                           {  return symbol(sym.MINUSEQ,yytext()); }
+  "*="                           {  return symbol(sym.MULTEQ,yytext()); }
+  "/="                           {  return symbol(sym.DIVEQ,yytext()); }
+//  "%="                           {  return symbol(sym.MODEQ,yytext()); }
+
+  /* string literal */
+  \"                             { yybegin(STRING);string.setLength(0); string.append("\""); }
+
+  /* character literal */
+  \'                             { yybegin(CHARLITERAL);}
+
+  /* numeric literals */
+
+  "-2147483648"                  {  return symbol(sym.INTEGER_LITERAL,yytext()); }
+
+  {DecIntegerLiteral}            {  return symbol(sym.INTEGER_LITERAL,yytext()); }
+  {DecLongLiteral}               {  return symbol(sym.LONG_LITERAL,yytext()); }
+
+  {HexIntegerLiteral}            {  return symbol(sym.INTEGER_LITERAL,yytext()); }
+  {HexLongLiteral}               {  return symbol(sym.LONG_LITERAL,yytext()); }
+
+  {OctIntegerLiteral}            {  return symbol(sym.INTEGER_LITERAL,yytext()); }
+  {OctLongLiteral}               {  return symbol(sym.LONG_LITERAL,yytext()); }
+
+  {FloatLiteral}                 {  return symbol(sym.REAL_LITERAL,yytext()); }
+  {DoubleLiteral}                {  return symbol(sym.REAL_LITERAL,yytext()); }
+  {DoubleLiteral}[dD]            {  return symbol(sym.REAL_LITERAL,yytext()); }
+
+  /* comments */
+  {Comment}                      { /*return symbol(sym.COMMENT,yytext());*/ }
+
+ {LineTerminator}                {/* return symbol(sym.NEW_LINE,yytext()); */}
+
+ {WhiteCharacter}              { //return symbol(sym.WHITE_CHAR,yytext());
+}
+
+
+  /* identifiers */
+  {Identifier}                   {  return symbol(sym.IDENTIFIER,yytext()); }
+}
+
+
+
+
+
+<STRING> {
+ \" {yybegin(YYINITIAL); StringBuilder temp = string ; string = new StringBuilder(); return symbol(sym.STRING_LITERAL, temp.toString() ); }
+  {StringCharacter}+  { string.append( yytext() ); }
+  \\. { string.append(yytext()  ); }
+
+
+
+  /* error cases */
+
+  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
+}
+
+<CHARLITERAL> {
+  {SingleCharacter}\' {yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, yytext() ); }
+    \\.\' {yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, yytext() ); }
+
+  /* error */
+
+  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               { throw new RuntimeException("Unterminated character literal at end of line"); }
+}
+
+[^]                              { throw new RuntimeException("Illegal character \""+yytext()+
+                                                              "\" at line "+yyline+", column "+yycolumn); }
+<<EOF>>                          {  return symbol(sym.EOF,yytext()); }
